@@ -14,7 +14,7 @@ const casaSchema = new Schema({
         type: Date,
         required: true
     },
-    atualLordCharacterLink: {
+    lordeID: {
         type: Number,
         required: true
     }

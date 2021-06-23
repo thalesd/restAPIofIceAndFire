@@ -15,8 +15,11 @@ app.use(setHeaders);
 
 app.use(casaRoutes);
 
+const errorHandler = require('./middlewares/setHeaders');
+app.use(errorHandler);
+
 //cpIregnjgscEQtkx
-mongoose.connect('mongodb+srv://thales:cpIregnjgscEQtkx@cluster0.45pc1.mongodb.net/restApiOfIceAndFire?retryWrites=true&w=majority', {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect('mongodb+srv://thales:cpIregnjgscEQtkx@cluster0.45pc1.mongodb.net/restApiOfIceAndFire?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(result => {
         app.listen(8080);
     })

@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/casas', casaController.listCasas);
 
-router.get('/casa', casaController.findCasaByID);
+router.get('/casa/:casaID', casaController.findCasaByID);
 
 router.get('/casa', casaController.findCasaByName);
 
@@ -21,5 +21,7 @@ router.post('/casa',
             .isLength({ min: 5, max: 255 }),
     ],
     casaController.addCasa);
+
+router.delete('/casa', [body('casaID').trim().exists().isNumeric()], casaController.deleteCasaByID);
 
 module.exports = router;

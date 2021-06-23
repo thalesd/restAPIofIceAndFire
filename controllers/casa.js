@@ -1,36 +1,40 @@
 const { validationResult } = require('express-validator');
 const Casa = require('../models/casa');
 
+const handleError = (err, next) => {
+    if(!err.statusCode){
+        err.statusCode = 500;
+    }
+
+    next(err);
+}
+
 exports.listCasas = (req, res, next) => {
-    res.status(200)
-        .json(
-            [
-                {
-                    Nome: "",
-                    Regiao: "",
-                    AnoDeFundacao: "",
-                    AtualLord: {
-                        Nome: "",
-                        Temporadas: [1, 2, 3, 4, 5, 6]
-                    },
-                }
-            ]
-        );
+    Casa.find()
+        .then(result => {
+            res.status(200)
+                .json(result);
+        })
+        .catch(err => handleError(err, next));
+
 }
 
 exports.addCasa = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json("Dados invalidos.")
+        const errror = new Error("Dados invalidos");
+        error.statusCode = 422;
+
+        throw error;
     }
 
-    const { nome, regiao, anoDeFundacao, atualLordCharacterLink } = req.body;
+    const { nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
 
     const casa = new Casa({
         nome, 
         regiao, 
         anoDeFundacao, 
-        atualLordCharacterLink
+        atualLordCharacterUrl
     });
 
     casa.save()
@@ -41,11 +45,52 @@ exports.addCasa = (req, res, next) => {
                     result
                 });
         })
-        .catch(err => console.log(err));
+        .catch(err => handleError(err, next));
 }
 
-exports.findCasaByName = (req, res, next) => { }
+exports.findCasaByName = (req, res, next) => { 
+    const CasaNome = req.query.nome;
 
-exports.findCasaByID = (req, res, next) => { }
+    Casa.find({ nome: CasaNome.tim() })
+        .then(casa => {
+            if(!casa){
+                const error = new Error("Casa não encontrada.");
+                error.statusCode = 404;
 
-exports.deleteCasaByID = (req, res, next) => { }
+                throw error;
+            }
+
+            res.status(200)
+                .json(casa);
+        })
+        .catch(err => handleError(err, next));
+}
+
+exports.findCasaByID = (req, res, next) => { 
+    const CasaID = req.params.casaID;
+
+    Casa.findById(CasaID)
+        .then(casa => {
+            if(!casa){
+                const error = new Error("Casa não encontrada.");
+                error.statusCode = 404;
+
+                throw error;
+            }
+
+            res.status(200)
+                .json(casa);
+        })
+        .catch(err => handleError(err, next));
+}
+
+exports.deleteCasaByID = (req, res, next) => { 
+    const CasaID = req.body.casaID;
+
+    Casa.findOneAndDelete(CasaID)
+        .then(result => {
+            res.status(200)
+                .json(result);
+        })
+        .catch(err => handleError(err, next));
+}
