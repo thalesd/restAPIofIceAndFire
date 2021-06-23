@@ -9,8 +9,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 
-const useCors = require('./middlewares/useCors');
-app.use(useCors);
+const setHeaders = require('./middlewares/setHeaders');
+app.use(setHeaders);
 
 app.use(casaRoutes);
 
