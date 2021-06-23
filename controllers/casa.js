@@ -1,3 +1,6 @@
+const { validationResult } = require('express-validator');
+const Casa = require('../models/casa');
+
 exports.listCasas = (req, res, next) => {
     res.status(200)
         .json(
@@ -16,10 +19,29 @@ exports.listCasas = (req, res, next) => {
 }
 
 exports.addCasa = (req, res, next) => {
-    const { nome, regiao, anoDeFundacao, atualLordID } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json("Dados invalidos.")
+    }
 
-    res.status(200)
-        .json({ nome, regiao, anoDeFundacao, atualLordID });
+    const { nome, regiao, anoDeFundacao, atualLordCharacterLink } = req.body;
+
+    const casa = new Casa({
+        nome, 
+        regiao, 
+        anoDeFundacao, 
+        atualLordCharacterLink
+    });
+
+    casa.save()
+        .then(result => {
+            res.status(201)
+                .json({
+                    message: "Casa criada com sucesso.",
+                    result
+                });
+        })
+        .catch(err => console.log(err));
 }
 
 exports.findCasaByName = (req, res, next) => { }
