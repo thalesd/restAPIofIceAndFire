@@ -1,5 +1,5 @@
 module.exports = (error, req, res, next) => {
-    console.log(error);
+    //console.log(error);
     const status = error.statusCode;
     const message = error.message;
 

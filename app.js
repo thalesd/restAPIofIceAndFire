@@ -15,7 +15,7 @@ app.use(setHeaders);
 
 app.use(casaRoutes);
 
-const errorHandler = require('./middlewares/setHeaders');
+const errorHandler = require('./middlewares/errorHandler');
 app.use(errorHandler);
 
 //cpIregnjgscEQtkx
