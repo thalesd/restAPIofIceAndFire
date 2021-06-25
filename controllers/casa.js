@@ -1,8 +1,20 @@
+const axios = require('axios');
 const { validationResult } = require('express-validator');
 const Casa = require('../models/casa');
+const Lord = require('../models/lord');
+
+const checkValidationError = (req) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const errror = new Error("Dados invalidos");
+        error.statusCode = 422;
+
+        throw error;
+    }
+}
 
 const handleError = (err, next) => {
-    if(!err.statusCode){
+    if (!err.statusCode) {
         err.statusCode = 500;
     }
 
@@ -20,24 +32,44 @@ exports.listCasas = (req, res, next) => {
 }
 
 exports.addCasa = (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const errror = new Error("Dados invalidos");
-        error.statusCode = 422;
-
-        throw error;
-    }
+    checkValidationError(req);
 
     const { nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
 
-    const casa = new Casa({
-        nome, 
-        regiao, 
-        anoDeFundacao, 
-        atualLordCharacterUrl
-    });
+    console.log(req.body);
 
-    casa.save()
+    let atualLord = null;
+
+    Lord
+        .findOne({ url: atualLordCharacterUrl })
+        .then(async lord => {
+            if (!lord) {
+                await axios
+                    .get(atualLordCharacterUrl)
+                    .then(response => {
+                        atualLord = new Lord({
+                            url: response.data.url,
+                            nome: response.data.name,
+                            temporadas: response.data.tvSeries.map(s => s.replace("Season", "Temporada"))
+                        });
+
+                        return atualLord.save();
+                    });
+            }
+            else {
+                atualLord = lord;
+            }
+        })
+        .then(() => {
+            const casa = new Casa({
+                nome,
+                regiao,
+                anoDeFundacao,
+                atualLord: atualLord
+            });
+        
+            return casa.save();
+        })
         .then(result => {
             res.status(201)
                 .json({
@@ -48,12 +80,14 @@ exports.addCasa = (req, res, next) => {
         .catch(err => handleError(err, next));
 }
 
-exports.findCasaByName = (req, res, next) => { 
+exports.findCasaByName = (req, res, next) => {
+    checkValidationError(req);
+
     const CasaNome = req.query.nome;
 
-    Casa.find({ nome: CasaNome.tim() })
+    Casa.find({ nome: CasaNome.trim() })
         .then(casa => {
-            if(!casa){
+            if (!casa) {
                 const error = new Error("Casa não encontrada.");
                 error.statusCode = 404;
 
@@ -66,12 +100,14 @@ exports.findCasaByName = (req, res, next) => {
         .catch(err => handleError(err, next));
 }
 
-exports.findCasaByID = (req, res, next) => { 
+exports.findCasaByID = (req, res, next) => {
+    checkValidationError(req);
+
     const CasaID = req.params.casaID;
 
     Casa.findById(CasaID)
         .then(casa => {
-            if(!casa){
+            if (!casa) {
                 const error = new Error("Casa não encontrada.");
                 error.statusCode = 404;
 
@@ -84,7 +120,25 @@ exports.findCasaByID = (req, res, next) => {
         .catch(err => handleError(err, next));
 }
 
-exports.deleteCasaByID = (req, res, next) => { 
+exports.updateCasa = (req, res, next) => {
+    checkValidationError(req);
+
+    const { casaID, nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
+
+    Casa.findByIdAndUpdate(casaID)
+        .then(casa => {
+            casa.nome = nome || casa.nome;
+            casa.regiao = regiao || casa.regiao;
+            casa.anoDeFundacao = anoDeFundacao || casa.anoDeFundacao;
+            casa.atualLordCharacterUrl = atualLordCharacterUrl || casa.atualLordCharacterUrl;
+
+            casa.save();
+        })
+}
+
+exports.deleteCasaByID = (req, res, next) => {
+    checkValidationError(req);
+
     const CasaID = req.body.casaID;
 
     Casa.findOneAndDelete(CasaID)

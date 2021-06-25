@@ -5,6 +5,15 @@ const casaController = require('../controllers/casa');
 
 const router = express.Router();
 
+const casaValidation = [
+    body('nome')
+        .trim()
+        .isLength({ min: 5, max: 255 }),
+    body('regiao')
+        .trim()
+        .isLength({ min: 5, max: 255 }) 
+];
+
 router.get('/casas', casaController.listCasas);
 
 router.get('/casa/:casaID', casaController.findCasaByID);
@@ -12,16 +21,13 @@ router.get('/casa/:casaID', casaController.findCasaByID);
 router.get('/casa', casaController.findCasaByName);
 
 router.post('/casa',
-    [
-        body('nome')
-            .trim()
-            .isLength({ min: 5, max: 255 }),
-        body('regiao')
-            .trim()
-            .isLength({ min: 5, max: 255 }),
-    ],
+    casaValidation,
     casaController.addCasa);
 
-router.delete('/casa', [body('casaID').trim().exists().isNumeric()], casaController.deleteCasaByID);
+router.put('/casa/:casaID',
+    casaValidation,
+    casaController.updateCasa);
+
+router.delete('/casa/:casaID', casaController.deleteCasaByID);
 
 module.exports = router;

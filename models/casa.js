@@ -14,8 +14,9 @@ const casaSchema = new Schema({
         type: Date,
         required: true
     },
-    lordeID: {
-        type: Number,
+    atualLord: {
+        type: Schema.Types.ObjectId,
+        ref: 'Lord',
         required: true
     }
 },
