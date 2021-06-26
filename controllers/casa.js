@@ -130,8 +130,11 @@ exports.updateCasa = (req, res, next) => {
 
     const { nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
 
+    let atualLord = null;
+
     Casa.findByIdAndUpdate(casaID)
-        .then(casa => {
+        .populate('atualLord')
+        .then(async casa => {
             if (!casa) {
                 const error = new Error("Casa não encontrada.");
                 error.statusCode = 404;
@@ -139,10 +142,40 @@ exports.updateCasa = (req, res, next) => {
                 throw error;
             }
 
+            let atualLord = null;
+
+            if (!!atualLordCharacterUrl) {
+                const lord = await Lord.findOne({ url: atualLordCharacterUrl });
+
+                if (!lord) {
+                    await axios
+                        .get(atualLordCharacterUrl)
+                        .then(response => {
+                            atualLord = new Lord({
+                                url: response.data.url,
+                                nome: response.data.name,
+                                temporadas: response.data.tvSeries.map(s => s.replace("Season", "Temporada"))
+                            });
+
+                            return atualLord.save();
+                        });
+                }
+                else {
+                    atualLord = lord;
+                }
+            }
+
+            Lord.findOne({ url: atualLordCharacterUrl })
+                .then(lordFound => {
+                    if (!lordFound) {
+
+                    }
+                })
+
             casa.nome = nome || casa.nome;
             casa.regiao = regiao || casa.regiao;
             casa.anoDeFundacao = anoDeFundacao || casa.anoDeFundacao;
-            casa.atualLordCharacterUrl = atualLordCharacterUrl || casa.atualLordCharacterUrl;
+            casa.atualLord = atualLord || casa.atualLord;
 
             casa.save();
 
