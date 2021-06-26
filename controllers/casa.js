@@ -26,14 +26,12 @@ const handleError = (err, next) => {
 
 exports.listCasas = (req, res, next) => {
     Casa.find()
-        .then(result => {
-            result.atualLord = Lord.
-
+        .populate('atualLord')
+        .then(casas => {
             res.status(200)
-                .json(result);
+                .json(casas);
         })
         .catch(err => handleError(err, next));
-
 }
 
 exports.addCasa = (req, res, next) => {
@@ -70,7 +68,7 @@ exports.addCasa = (req, res, next) => {
                 anoDeFundacao,
                 atualLord: atualLord
             });
-        
+
             return casa.save();
         })
         .then(result => {
@@ -89,6 +87,7 @@ exports.findCasaByName = (req, res, next) => {
     const CasaNome = req.query.nome;
 
     Casa.findOne({ nome: CasaNome.trim() })
+        .populate('atualLord')
         .then(casa => {
             if (!casa) {
                 const error = new Error("Casa não encontrada.");
@@ -109,6 +108,7 @@ exports.findCasaByID = (req, res, next) => {
     const CasaID = req.params.casaID;
 
     Casa.findById(CasaID)
+        .populate('atualLord')
         .then(casa => {
             if (!casa) {
                 const error = new Error("Casa não encontrada.");
