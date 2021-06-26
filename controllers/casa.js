@@ -6,7 +6,10 @@ const Lord = require('../models/lord');
 const checkValidationError = (req) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const errror = new Error("Dados invalidos");
+        const error = new Error("Dados invalidos: ");
+
+        error.message += errors.array().map(e => e.msg).join(' | ');
+
         error.statusCode = 422;
 
         throw error;
@@ -24,6 +27,8 @@ const handleError = (err, next) => {
 exports.listCasas = (req, res, next) => {
     Casa.find()
         .then(result => {
+            result.atualLord = Lord.
+
             res.status(200)
                 .json(result);
         })
@@ -35,8 +40,6 @@ exports.addCasa = (req, res, next) => {
     checkValidationError(req);
 
     const { nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
-
-    console.log(req.body);
 
     let atualLord = null;
 
@@ -85,7 +88,7 @@ exports.findCasaByName = (req, res, next) => {
 
     const CasaNome = req.query.nome;
 
-    Casa.find({ nome: CasaNome.trim() })
+    Casa.findOne({ nome: CasaNome.trim() })
         .then(casa => {
             if (!casa) {
                 const error = new Error("Casa não encontrada.");
@@ -123,17 +126,29 @@ exports.findCasaByID = (req, res, next) => {
 exports.updateCasa = (req, res, next) => {
     checkValidationError(req);
 
-    const { casaID, nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
+    const casaID = req.params.casaID;
+
+    const { nome, regiao, anoDeFundacao, atualLordCharacterUrl } = req.body;
 
     Casa.findByIdAndUpdate(casaID)
         .then(casa => {
+            if (!casa) {
+                const error = new Error("Casa não encontrada.");
+                error.statusCode = 404;
+
+                throw error;
+            }
+
             casa.nome = nome || casa.nome;
             casa.regiao = regiao || casa.regiao;
             casa.anoDeFundacao = anoDeFundacao || casa.anoDeFundacao;
             casa.atualLordCharacterUrl = atualLordCharacterUrl || casa.atualLordCharacterUrl;
 
             casa.save();
+
+            res.status(200).json(casa);
         })
+        .catch(err => handleError(err, next));
 }
 
 exports.deleteCasaByID = (req, res, next) => {
@@ -143,6 +158,13 @@ exports.deleteCasaByID = (req, res, next) => {
 
     Casa.findOneAndDelete(CasaID)
         .then(result => {
+            if (!casa) {
+                const error = new Error("Casa não encontrada.");
+                error.statusCode = 404;
+
+                throw error;
+            }
+
             res.status(200)
                 .json(result);
         })

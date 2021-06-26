@@ -9,7 +9,6 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-
 const setHeaders = require('./middlewares/setHeaders');
 app.use(setHeaders);
 

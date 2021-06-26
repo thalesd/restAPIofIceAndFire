@@ -11,8 +11,7 @@ const lordSchema = new Schema({
         required: true
     },
     temporadas: [{
-        type: String,
-        required: true
+        type: String
     }]
 },
     { timestamps: true }
